@@ -98,15 +98,21 @@ Meredith	Roy	Berry</textarea>
             </div>
         </div>
         Delimiters
-        <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-            <input type="checkbox" class="btn-check" id="spaces" autocomplete="off" onchange="updateOutputBox()" checked>
-            <label class="btn btn-outline-primary" for="spaces">Spaces</label>
-          
-            <input type="checkbox" class="btn-check" id="commas" autocomplete="off" onchange="updateOutputBox()" checked>
-            <label class="btn btn-outline-primary" for="commas">Commas</label>
-
-            <input type="checkbox" class="btn-check" id="tabs" autocomplete="off" onchange="updateOutputBox()" checked>
-            <label class="btn btn-outline-primary" for="tabs">Tabs</label>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="newline" value="newline" disabled checked>
+            <label class="form-check-label" for="newline">line feed</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="tabs" value="tabs" onchange="updateOutputBox()" checked>
+            <label class="form-check-label" for="tabs">tab</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="spaces" value="spaces" onchange="updateOutputBox()" checked>
+            <label class="form-check-label" for="spaces">space</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="commas" value="commas" onchange="updateOutputBox()" checked>
+            <label class="form-check-label" for="commas">comma</label>
         </div>
         <div class="alert alert-danger" role="alert" id="warning" style="display:none">
         </div>
