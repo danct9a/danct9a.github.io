@@ -57,7 +57,11 @@
         outputList.innerHTML = ''
         outputData.forEach((item) => {
             let li = document.createElement('li');
-            li.innerText = item
+            if (document.getElementById('markdown').checked) {
+                li.innerText = '* ' + item
+            } else {
+                li.innerText = item
+            }
             li.className = 'list-group-item'
             outputList.appendChild(li)
         })
@@ -89,7 +93,7 @@ John Steve Bob
                     <label for="csv_output" class="form-label"><p class="h5">CSV output</p></label>
                         <div class="alert alert-danger" role="alert" id="comma_warning" style="display:none">
                         </div>
-                    <textarea class="form-control" id="csv_output" rows="10" cols="30" readonly></textarea>
+                    <textarea class="form-control" id="csv_output" rows="10" cols="30" onclick="csv_output.select()" readonly></textarea>
                 </div>
             </div>
         </div>
@@ -111,14 +115,17 @@ John Steve Bob
         <hr>
         
         <div class="row">
-            <div class="col-sm-6">
-                <label for="output_list" class="form-label"><p class="h5">List output</p></label>
+            <div class="col-sm-3">
+                <label for="output_list" class="form-label"><p class="h5">List output</p><div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="markdown" onchange="updateOutputBox()">
+                    <label class="form-check-label" for="markdown">Markdown Formatted</label>
+                  </div></label>
                 <ul id="output_list" class="list-group list-group-flush"></ul>
             </div>
             <div class="col-sm-6 text-center">
                 <div class="mb-3">
                     <label for="python_output" class="form-label"><p class="h5">Python list</p></label>
-                    <textarea class="form-control" id="python_output" rows="10" cols="30" readonly></textarea>
+                    <textarea class="form-control" id="python_output" rows="10" cols="30" onclick="python_output.select()" readonly></textarea>
                 </div>
             </div>
         </div>
