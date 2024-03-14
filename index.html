@@ -13,15 +13,15 @@
         let outputWarningMessages = String()
         let warning = document.getElementById('warning')
         if (document.getElementById('commas').checked == false) {
-            warningMessages.push('<strong>WARNING: commas</strong> aren\'t separated in the <strong>CSV output</strong> if not using the comma delimeter!')
+            warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter!')
         }
         if (document.getElementById('tabs').checked == false) {
-            warningMessages.push('<strong>WARNING: tabs</strong> appear as spaces in the <strong>list output</strong>!')
+            warningMessages.push('<strong>tabs</strong> output as spaces in the <strong>list output</strong>!')
         }
         if (warningMessages.length > 0) {
             warning.style.display = 'block'
             warningMessages.forEach((message) => {
-                outputWarningMessages += `${message}<br>`
+                outputWarningMessages += `<strong>WARNING:</strong> ${message}<br>`
             })
         } else {
             warning.style.display = 'none'
@@ -88,7 +88,6 @@ John Steve Bob
                 <div class="mb-3">
                     <label for="csv_output" class="form-label"><p class="h5">CSV output</p></label>
                         <div class="alert alert-danger" role="alert" id="comma_warning" style="display:none">
-                            Warning: <strong>commas</strong> aren't separated below if not using the comma delimeter!
                         </div>
                     <textarea class="form-control" id="csv_output" rows="10" cols="30" readonly></textarea>
                 </div>
@@ -114,9 +113,6 @@ John Steve Bob
         <div class="row">
             <div class="col-sm-6">
                 <label for="output_list" class="form-label"><p class="h5">List output</p></label>
-                    <div class="alert alert-danger" role="alert" id="tab_warning" style="display:none">
-                        Warning: <strong>tabs</strong> appear as spaces in the list output!
-                    </div>
                 <ul id="output_list" class="list-group list-group-flush"></ul>
             </div>
             <div class="col-sm-6 text-center">
