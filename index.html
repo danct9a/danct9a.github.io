@@ -13,7 +13,7 @@
         let outputWarningMessages = String()
         let warning = document.getElementById('warning')
         if (document.getElementById('commas').checked == false) {
-            warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter!')
+            warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter! You can work around this by wrapping the text in quotations, using the modifiers section above.')
         }
         if (document.getElementById('tabs').checked == false) {
             warningMessages.push('<strong>tabs</strong> will output as spaces in the <strong>list output</strong>!')
