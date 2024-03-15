@@ -16,7 +16,7 @@
             warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter!')
         }
         if (document.getElementById('tabs').checked == false) {
-            warningMessages.push('<strong>tabs</strong> output as spaces in the <strong>list output</strong>!')
+            warningMessages.push('<strong>tabs</strong> will output as spaces in the <strong>list output</strong>!')
         }
         if (warningMessages.length > 0) {
             warning.style.display = 'block'
@@ -28,7 +28,19 @@
         }
         warning.innerHTML = outputWarningMessages
     }
-    
+
+    function repackArray(inputArray, prefix, suffix) {
+        let tempArray = Array()
+        inputArray.forEach((element) => {
+            tempArray.push(`${prefix.value}${element}${suffix.value}`)
+        })
+        return tempArray
+    }
+
+    function returnUniqueArray(inputArray) {
+        return [...new Set(inputArray)]
+    }
+
     function returnRegExp() {
         let exclusionString = ''
         if (document.getElementById('spaces').checked) {
@@ -43,34 +55,43 @@
         return RegExp(`[^${exclusionString}\n]+`, 'g')
     }
 
-    function returnList(searchString) {
+    function returnArray(searchString) {
         return searchString.match(returnRegExp())
     }
 
     function updateOutputBox() {
-        let outputData = returnList(document.getElementById('input1').value)
-        document.getElementById('python_output').innerHTML = 'mylist = ' + JSON.stringify(outputData)
-        document.getElementById('csv_output').innerHTML = outputData
-        document.getElementById('output_count').innerText = 'Counted ' + outputData.length + (outputData.length == 1 ? ' entry' : ' entries')
-        let outputList = document.getElementById('output_list')
+        let prefix = document.getElementById('prefix')
+        let suffix = document.getElementById('suffix')
+        let outputData = repackArray(returnArray(document.getElementById('input1').value), prefix, suffix)
+        if (document.getElementById('unique').checked) {
+            outputData = [...new Set(repackArray(returnArray(document.getElementById('input1').value), prefix, suffix))]
+        }
         updateWarning()
+        document.getElementById('python_output').innerHTML = `mylist = ${JSON.stringify(outputData)}\n\nfor item in mylist:\n    print(item)`
+        document.getElementById('csv_output').innerHTML = outputData
+        document.getElementById('output_count').innerHTML = 'Counted ' + outputData.length + (document.getElementById('unique').checked ? ' <em>unique</em>' : '') + (outputData.length == 1 ? ' entry' : ' entries')
+        let outputList = document.getElementById('output_list')
+        let outputPre = document.getElementById('output_preformatted')
+
+        outputPre.innerText = ''
         outputList.innerHTML = ''
         outputData.forEach((item) => {
-            let li = document.createElement('li');
             if (document.getElementById('markdown').checked) {
-                li.innerText = '* ' + item
+                outputPre.append(`* ${item}\n`)
             } else {
+                let li = document.createElement('li'); // create list item
                 li.innerText = item
+                li.className = 'list-group-item'
+                outputList.appendChild(li)
             }
-            li.className = 'list-group-item'
-            outputList.appendChild(li)
+
         })
     }
     </script>
 </head>
 <body onload="updateOutputBox()">
 
-    <div class="container text-left">
+    <div class="container">
         <div class="row">
             <div class="col text-center">
                 <p class="h1">Dan's Simple JS Text Separator</p>
@@ -80,53 +101,75 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-sm-6"><p><strong>Delimiters</strong></p>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="newline" value="newline" disabled checked>
+                    <label class="form-check-label" for="newline">line feed</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="tabs" value="tabs" onchange="updateOutputBox()" checked>
+                    <label class="form-check-label" for="tabs">tab</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="spaces" value="spaces" onchange="updateOutputBox()" checked>
+                    <label class="form-check-label" for="spaces">space</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="commas" value="commas" onchange="updateOutputBox()" checked>
+                    <label class="form-check-label" for="commas">comma</label>
+                </div></div>
+            <div class="col-sm-6"><p><strong>Modifiers (Wrap Values)</strong></p>
+                <div class="row">
+                    <div class="col-6">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Prefix" aria-label="prefix" id="prefix" oninput="updateOutputBox()">
+                        <input type="text" class="form-control" placeholder="Suffix" aria-label="suffix" id="suffix" oninput="updateOutputBox()">
+                    </div>
+                </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+        <div class="col-sm-6">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="unique" value="unique" onchange="updateOutputBox()">
+                <label class="form-check-label" for="unique">remove duplicates</label>
+            </div>
+        </div>
+        <div class="col-sm-6 text-end"><p id="output_count"></p></div>
+
+        <hr>
+        <div class="alert alert-danger" role="alert" id="warning" style="display:none"></div>
+        <div class="row">
             <div class="col-sm-6 text-center">
                 <div class="mb-3">
                     <label for="input1" class="form-label"><p class="h5">Input</p></label>
                     <textarea class="form-control" id="input1" rows="10" cols="30" oninput="updateOutputBox()">Sheryl,Marie,Baxter
 John Steve Bob
-Meredith	Roy	Berry</textarea>
+Meredith	Roy	Berry Berry</textarea>
                 </div>
             </div>
             <div class="col-sm-6 text-center">
                 <div class="mb-3">
                     <label for="csv_output" class="form-label"><p class="h5">CSV output</p></label>
-                        <div class="alert alert-danger" role="alert" id="comma_warning" style="display:none">
-                        </div>
                     <textarea class="form-control" id="csv_output" rows="10" cols="30" onclick="csv_output.select()" readonly></textarea>
                 </div>
             </div>
         </div>
-        Delimiters
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="newline" value="newline" disabled checked>
-            <label class="form-check-label" for="newline">line feed</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="tabs" value="tabs" onchange="updateOutputBox()" checked>
-            <label class="form-check-label" for="tabs">tab</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="spaces" value="spaces" onchange="updateOutputBox()" checked>
-            <label class="form-check-label" for="spaces">space</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" id="commas" value="commas" onchange="updateOutputBox()" checked>
-            <label class="form-check-label" for="commas">comma</label>
-        </div>
-        <div class="alert alert-danger" role="alert" id="warning" style="display:none">
-        </div>
-        <hr>
-        <p id="output_count"></p>
+
         <hr>
         
         <div class="row">
-            <div class="col-sm-3">
+            <div class="col-sm-6">
                 <label for="output_list" class="form-label"><p class="h5">List output</p><div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="markdown" onchange="updateOutputBox()">
-                    <label class="form-check-label" for="markdown">Markdown Formatted</label>
+                    <label class="form-check-label" for="markdown">Markdown</label>
                   </div></label>
                 <ul id="output_list" class="list-group list-group-flush"></ul>
+                <pre id="output_preformatted"></pre>
             </div>
             <div class="col-sm-6 text-center">
                 <div class="mb-3">
@@ -136,7 +179,6 @@ Meredith	Roy	Berry</textarea>
             </div>
         </div>
       </div>
-<hr>
 
 </body>
 </html>
