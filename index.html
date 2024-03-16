@@ -67,6 +67,58 @@
         return [...new Set(inputArray)]
     }
 
+
+    function getOutputFormat() {
+        for (let i of document.getElementsByName('btnradio')) {
+        if (i.checked) {
+            return i.id.replace('toggle', '').replace('Output', '')
+            }
+        }
+    }
+
+    function setCardHeaderColour(outputFormat) {
+        let cardHeader = document.getElementById('cardHeader')
+        colourDictionary = {
+            'List': 'bg-primary',
+            'Raw': 'bg-secondary',
+            'CSV': 'bg-success',
+            'Python': 'bg-danger'
+        }
+        for (const [format, colour] of Object.entries(colourDictionary)) {
+            if (outputFormat == format) {
+                cardHeader.className = `card-header text-light ${colour}`
+            }
+        }
+    }
+
+    function updateWarningBox() {
+        // get values of checkboxes
+        let toggleTab = document.getElementById('toggleTab')
+        let toggleComma = document.getElementById('toggleComma')
+        let toggleOutputList = document.getElementById('toggleOutputList')
+        let toggleOutputCSV = document.getElementById('toggleOutputCSV')
+
+        let warningBox = document.getElementById('warningBox')
+
+        let warningMessages = Array()
+        let outputWarningMessages = String()
+        if (toggleComma.checked == false && toggleOutputCSV.checked) {
+            warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter! You can work around this by wrapping the text in quotations, using the modifiers section above.')
+        }
+        if (toggleTab.checked == false && toggleOutputList.checked) {
+            warningMessages.push('<strong>tabs</strong> will output as spaces in the <strong>list output</strong>!')
+        }
+        if (warningMessages.length > 0) {
+            warningBox.style.display = 'block'
+            warningMessages.forEach((message) => {
+                outputWarningMessages += `<strong>WARNING:</strong> ${message}<br>`
+            })
+        } else {
+            warningBox.style.display = 'none'
+        }
+        warningBox.innerHTML = outputWarningMessages
+    }
+
     function updateOutputBox() {
         let toggleUnique = document.getElementById('toggleUnique')
         let inputTextarea = document.getElementById('inputTextarea').value
@@ -74,12 +126,15 @@
         let outputPre = document.getElementById('outputPre')
         let outputUL = document.getElementById('outputUL')
         let outputCounter = document.getElementById('outputCounter')
+        let firstValueField = document.getElementById('firstValueField')
+        let outputFormat = document.getElementById('outputFormat')
 
         let toggleOutputList = document.getElementById('toggleOutputList')
         let toggleOutputRaw = document.getElementById('toggleOutputRaw')
-        let toggleOutpuCSV = document.getElementById('toggleOutpuCSV')
-        let toggleOutpuPython = document.getElementById('toggleOutpuPython')
+        let toggleOutputCSV = document.getElementById('toggleOutputCSV')
+        let toggleOutputPython = document.getElementById('toggleOutputPython')
         
+
         let outputArray = String()
         
         if (toggleUnique.checked) {
@@ -100,15 +155,16 @@
             })
         }
 
-        if (toggleOutpuCSV.checked || toggleOutpuPython.checked) {
+        if (toggleOutputCSV.checked || toggleOutputPython.checked) {
             outputPre.style.display = 'none'
             outputTextarea.style.display = 'block'
             outputUL.style.display = 'none'
             outputTextarea.innerHTML = outputArray
         }
 
-        if (toggleOutpuPython.checked) {
-            outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor item in mylist:\n    print(item)`
+        if (toggleOutputPython.checked) {
+            outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
+            
         }
 
         if (toggleOutputList.checked) {
@@ -123,6 +179,20 @@
                 outputUL.appendChild(li)
             })
         }
+        outputFormat.innerText = getOutputFormat() + ' Output '
+        setCardHeaderColour(getOutputFormat())
+
+        firstValueField.innerHTML = stripPacking(outputArray[0])
+        updateWarningBox()
+    }
+
+    function stripPacking(firstValue) {
+
+        let suffixLength = document.getElementById('suffix').value.length
+        let prefixLength = document.getElementById('prefix').value.length
+        let firstValueLength = firstValue.length
+
+        return firstValue.slice(prefixLength, (firstValueLength - suffixLength))
     }
     </script>
 </head>
@@ -139,19 +209,25 @@
     </div>
     <!-- end of row A -->
     <div class="row" id="rowB">
-      <div class="col-sm-9 p-2 text-center">
-        <div class="input-group">
-            <span class="input-group-text">Input</span>
-            <textarea class="form-control" aria-label="Input" rows="13" id="inputTextarea" oninput="updateOutputBox()">Sheryl,Marie,Baxter
+      <div class="col-xl-9 p-2 text-start">
+        <!--start of input card-->
+        <div class="card">
+            <div class="card-header"><span class="h5">Input</span></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <textarea class="form-control" aria-label="Input" rows="9" id="inputTextarea" oninput="updateOutputBox()">Sheryl,Marie,Baxter
 John Steve Bob Bob
 Meredith	Roy	Berry</textarea>
+                </div>
+            </div>
         </div>
+        <!--end of input card-->
       </div>
-      <div class="col-sm-3 p-2 text-start">
+      <div class="col-xl-3 p-2 text-start">
         <!-- start of card -->
         <div class="card">
             <h5 class="card-header">Options</h5>
-            <div class="card-body">
+            <div class="card-body p-3">
                 <h7 class="card-title">Delimeters</h5>
                 <div class="row">
                 <div class="col-5">
@@ -175,33 +251,39 @@ Meredith	Roy	Berry</textarea>
                     </div>
                 </div>
                 <div class="col-2">
-                    <div class="input-group input-group-sm mb-3">
+                    <div class="input-group input-group-sm mt-2">
                         <input type="text" class="form-control" aria-label="custom" placeholder="" maxlength="1" oninput="updateOutputBox()" id="customDelimeter">
                     </div>
                 </div>
-                </div><hr>
+                </div><hr class="mt-1 mb-1">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="toggleUnique" onchange="updateOutputBox()">
                     <label class="form-check-label" for="toggleUnique">remove duplicates</label>
                 </div>
-                <div class="input-group input-group-sm mb-3">
-                    <input type="text" class="form-control" placeholder="prefix" aria-label="prefix" id="prefix" oninput="updateOutputBox()">
-                    <input type="text" class="form-control" placeholder="suffix" aria-label="suffix" id="suffix" oninput="updateOutputBox()">
+
+                <div class="row">
+                    
+                
+                    <div class="col-4"><div class="input-group input-group-sm mt-1 mb-0"><input type="text" class="form-control" placeholder="prefix" aria-label="prefix" id="prefix" oninput="updateOutputBox()"></div></div>
+                    <div class="col-4 p-1 text-truncate text-center small mt-1" id="firstValueField"></div>
+                    <div class="col-4"><div class="input-group input-group-sm mt-1 mb-0"><input type="text" class="form-control" placeholder="suffix" aria-label="suffix" id="suffix" oninput="updateOutputBox()"></div></div>
+                
                 </div>
-                <hr>
+                <hr class="mt-2 mb-1">
+
                 <span>Output&nbsp;</span>
-                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                <div class="btn-group" role="group" aria-label="OutputType">
                     <input type="radio" class="btn-check" name="btnradio" id="toggleOutputList" autocomplete="off" oninput="updateOutputBox()" checked>
                     <label class="btn btn-outline-primary" for="toggleOutputList">List</label>
 
                     <input type="radio" class="btn-check" name="btnradio" id="toggleOutputRaw" autocomplete="off" oninput="updateOutputBox()">
-                    <label class="btn btn-outline-primary" for="toggleOutputRaw">Raw</label>
+                    <label class="btn btn-outline-secondary" for="toggleOutputRaw">Raw</label>
                   
-                    <input type="radio" class="btn-check" name="btnradio" id="toggleOutpuCSV" autocomplete="off" oninput="updateOutputBox()">
-                    <label class="btn btn-outline-primary" for="toggleOutpuCSV">CSV</label>
+                    <input type="radio" class="btn-check" name="btnradio" id="toggleOutputCSV" autocomplete="off" oninput="updateOutputBox()">
+                    <label class="btn btn-outline-success" for="toggleOutputCSV">CSV</label>
                   
-                    <input type="radio" class="btn-check" name="btnradio" id="toggleOutpuPython" autocomplete="off" oninput="updateOutputBox()">
-                    <label class="btn btn-outline-primary" for="toggleOutpuPython">Python</label>
+                    <input type="radio" class="btn-check" name="btnradio" id="toggleOutputPython" autocomplete="off" oninput="updateOutputBox()">
+                    <label class="btn btn-outline-danger" for="toggleOutputPython">Python</label>
                 </div>
             </div>
             
@@ -214,11 +296,17 @@ Meredith	Roy	Berry</textarea>
 
     <div class="row" id="rowC">
         <div class="col-sm-9 p-2 text-start">
-            <p class="h5">Output <span id="outputCounter" class="small"></span></p>
-            <pre id="outputPre" style="display:none"></pre>
-            <ul id="outputUL" class="list-group list-group-flush" style="display:none"></ul>
-            <textarea class="form-control" aria-label="Output" rows="13" id="outputTextarea" style="display:none" onclick="select()"></textarea>
-
+            <!--start of output card-->
+            <div class="card">
+                <div class="card-header bg-primary text-light" id="cardHeader"><span id="outputFormat" class="h5"></span><span id="outputCounter" class="small"></span></div>
+                <div class="card-body">
+                <div class="alert alert-danger" role="alert" id="warningBox" style="display:none"></div>
+                <pre id="outputPre" style="display:none"></pre>
+                <ul id="outputUL" class="list-group list-group-flush" style="display:none"></ul>
+                <textarea class="form-control" aria-label="Output" rows="9" id="outputTextarea" style="display:none" onclick="select()"></textarea>
+                </div>
+            </div>
+            <!--end of output card-->
         </div>
         <!-- the below line is only used for spacing -->
         <div class="col-sm-3 p-2 text-start"></div>
