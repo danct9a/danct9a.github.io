@@ -92,16 +92,16 @@
     }
 
     function updateWarningBox() {
-        // get values of checkboxes
+        // get checkbox and warningBox elements
         let toggleTab = document.getElementById('toggleTab')
         let toggleComma = document.getElementById('toggleComma')
         let toggleOutputList = document.getElementById('toggleOutputList')
         let toggleOutputCSV = document.getElementById('toggleOutputCSV')
-
         let warningBox = document.getElementById('warningBox')
 
         let warningMessages = Array()
         let outputWarningMessages = String()
+
         if (toggleComma.checked == false && toggleOutputCSV.checked) {
             warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter! You can work around this by wrapping the text in quotations, using the modifiers section above.')
         }
@@ -119,8 +119,22 @@
         warningBox.innerHTML = outputWarningMessages
     }
 
+    function stripPacking(firstValue) {
+
+        let suffixLength = document.getElementById('suffix').value.length
+        let prefixLength = document.getElementById('prefix').value.length
+        let firstValueLength = firstValue.length
+
+        return firstValue.slice(prefixLength, (firstValueLength - suffixLength))
+    }
+
     function updateOutputBox() {
+        // create variables for various elements on page
         let toggleUnique = document.getElementById('toggleUnique')
+        let toggleOutputList = document.getElementById('toggleOutputList')
+        let toggleOutputRaw = document.getElementById('toggleOutputRaw')
+        let toggleOutputCSV = document.getElementById('toggleOutputCSV')
+        let toggleOutputPython = document.getElementById('toggleOutputPython')
         let inputTextarea = document.getElementById('inputTextarea').value
         let outputTextarea = document.getElementById('outputTextarea')
         let outputPre = document.getElementById('outputPre')
@@ -129,22 +143,19 @@
         let firstValueField = document.getElementById('firstValueField')
         let outputFormat = document.getElementById('outputFormat')
 
-        let toggleOutputList = document.getElementById('toggleOutputList')
-        let toggleOutputRaw = document.getElementById('toggleOutputRaw')
-        let toggleOutputCSV = document.getElementById('toggleOutputCSV')
-        let toggleOutputPython = document.getElementById('toggleOutputPython')
-        
-
         let outputArray = String()
         
+        // get regex array/unique regex array based on toggleUnique value
         if (toggleUnique.checked) {
             outputArray = returnUniqueArray(executeRegexMatchAndRepack(inputTextarea))
         } else {
             outputArray = executeRegexMatchAndRepack(inputTextarea)
         }
 
+        // update counter in output
         outputCounter.innerHTML = '[' + outputArray.length + (document.getElementById('toggleUnique').checked ? ' <em>unique</em>' : '') + (outputArray.length == 1 ? ' item]' : ' items]')
         
+        // show pre, hide textarea/list and output raw to pre
         if (toggleOutputRaw.checked) {
             outputPre.style.display = 'block'
             outputTextarea.style.display = 'none'
@@ -155,6 +166,7 @@
             })
         }
 
+        // hide pre/list, show textarea and output for CSV
         if (toggleOutputCSV.checked || toggleOutputPython.checked) {
             outputPre.style.display = 'none'
             outputTextarea.style.display = 'block'
@@ -162,11 +174,12 @@
             outputTextarea.innerHTML = outputArray
         }
 
+        // update textarea for python
         if (toggleOutputPython.checked) {
             outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
-            
         }
 
+        // hide pre/textarea, show list and append output to list
         if (toggleOutputList.checked) {
             outputPre.style.display = 'none'
             outputTextarea.style.display = 'none'
@@ -179,21 +192,19 @@
                 outputUL.appendChild(li)
             })
         }
+
+        // update card title and background colour basd on output format
         outputFormat.innerText = getOutputFormat() + ' Output '
         setCardHeaderColour(getOutputFormat())
 
+        // update field between prefix/suffix boxes
         firstValueField.innerHTML = stripPacking(outputArray[0])
+
+        // update warning
         updateWarningBox()
     }
 
-    function stripPacking(firstValue) {
 
-        let suffixLength = document.getElementById('suffix').value.length
-        let prefixLength = document.getElementById('prefix').value.length
-        let firstValueLength = firstValue.length
-
-        return firstValue.slice(prefixLength, (firstValueLength - suffixLength))
-    }
     </script>
 </head>
 <body onload="updateOutputBox()">
@@ -201,10 +212,8 @@
   <div class="container">
     <div class="row p-2" id="rowA">
         <div class="col text-center">
-            <p class="h1">Dan's Simple JS Text Separator</p>
-            <p class="lead">
-                This is a tool to separate text based on <em>line feeds, tabs, spaces, commas</em> and <em>custom delimiters</em>.
-            </p>
+            <p class="h2">Dan's Text Separator</p>
+            <p>This script separates text based on <em>line feeds, tabs, spaces, commas</em> and <em>custom delimiters</em>.</p>
         </div>
     </div>
     <!-- end of row A -->
@@ -213,21 +222,19 @@
         <!--start of input card-->
         <div class="card">
             <div class="card-header"><span class="h5">Input</span></div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <textarea class="form-control" aria-label="Input" rows="9" id="inputTextarea" oninput="updateOutputBox()">Sheryl,Marie,Baxter
+            <div class="card-body p-2">
+                    <textarea class="form-control" aria-label="Input" rows="9" id="inputTextarea" oninput="updateOutputBox()" ondblclick="select()">Sheryl,Marie,Baxter
 John Steve Bob Bob
 Meredith	Roy	Berry</textarea>
-                </div>
             </div>
         </div>
         <!--end of input card-->
       </div>
       <div class="col-xl-3 p-2 text-start">
-        <!-- start of card -->
+        <!-- start of options card -->
         <div class="card">
             <h5 class="card-header">Options</h5>
-            <div class="card-body p-3">
+            <div class="card-body p-2">
                 <h7 class="card-title">Delimeters</h5>
                 <div class="row">
                 <div class="col-5">
@@ -288,7 +295,7 @@ Meredith	Roy	Berry</textarea>
             </div>
             
         </div>
-        <!-- end of card -->
+        <!-- end of options card -->
         </div>
         <!-- end of col -->
     </div>
@@ -299,11 +306,11 @@ Meredith	Roy	Berry</textarea>
             <!--start of output card-->
             <div class="card">
                 <div class="card-header bg-primary text-light" id="cardHeader"><span id="outputFormat" class="h5"></span><span id="outputCounter" class="small"></span></div>
-                <div class="card-body">
+                <div class="card-body p-2" id="test">
                 <div class="alert alert-danger" role="alert" id="warningBox" style="display:none"></div>
-                <pre id="outputPre" style="display:none"></pre>
-                <ul id="outputUL" class="list-group list-group-flush" style="display:none"></ul>
-                <textarea class="form-control" aria-label="Output" rows="9" id="outputTextarea" style="display:none" onclick="select()"></textarea>
+                <pre id="outputPre" style="display:none" ondblclick="window.getSelection().selectAllChildren(document.getElementById('outputPre'))"></pre>
+                <ul id="outputUL" class="list-group list-group-flush" style="display:none" ondblclick="window.getSelection().selectAllChildren(document.getElementById('outputUL'))"></ul>
+                <textarea class="form-control" aria-label="Output" rows="9" id="outputTextarea" style="display:none" ondblclick="select()"></textarea>
                 </div>
             </div>
             <!--end of output card-->
