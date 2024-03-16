@@ -135,6 +135,9 @@
         let toggleOutputRaw = document.getElementById('toggleOutputRaw')
         let toggleOutputCSV = document.getElementById('toggleOutputCSV')
         let toggleOutputPython = document.getElementById('toggleOutputPython')
+        let toggleCommaToSpaces = document.getElementById('toggleCommaToSpaces')
+        let divCommaToSpaces = document.getElementById('divCommaToSpaces')
+
         let inputTextarea = document.getElementById('inputTextarea').value
         let outputTextarea = document.getElementById('outputTextarea')
         let outputPre = document.getElementById('outputPre')
@@ -153,7 +156,7 @@
         }
 
         // update counter in output
-        outputCounter.innerHTML = '[' + outputArray.length + (document.getElementById('toggleUnique').checked ? ' <em>unique</em>' : '') + (outputArray.length == 1 ? ' item]' : ' items]')
+        outputCounter.innerHTML = outputArray.length + (document.getElementById('toggleUnique').checked ? ' <em>unique</em>' : '') + (outputArray.length == 1 ? ' item' : ' items')
         
         // show pre, hide textarea/list and output raw to pre
         if (toggleOutputRaw.checked) {
@@ -161,9 +164,7 @@
             outputTextarea.style.display = 'none'
             outputUL.style.display = 'none'
             outputPre.innerHTML = ''
-            outputArray.forEach((element) => {
-                outputPre.innerHTML += element + '\n'
-            })
+            outputPre.innerHTML = outputArray.join('\n')
         }
 
         // hide pre/list, show textarea and output for CSV
@@ -171,12 +172,22 @@
             outputPre.style.display = 'none'
             outputTextarea.style.display = 'block'
             outputUL.style.display = 'none'
-            outputTextarea.innerHTML = outputArray
+            outputTextarea.innerHTML = outputArray.join()
         }
+
+        if (toggleOutputCSV.checked) {
+            divCommaToSpaces.style.display = 'block'
+        } else {
+            divCommaToSpaces.style.display = 'none'
+        }
+        if (toggleCommaToSpaces.checked && toggleOutputCSV.checked) {
+            outputTextarea.innerHTML = outputArray.join().replaceAll(',', ' ')
+        }   
 
         // update textarea for python
         if (toggleOutputPython.checked) {
             outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
+
         }
 
         // hide pre/textarea, show list and append output to list
@@ -194,7 +205,7 @@
         }
 
         // update card title and background colour basd on output format
-        outputFormat.innerText = getOutputFormat() + ' Output '
+        outputFormat.innerText = getOutputFormat() + ' Output'
         setCardHeaderColour(getOutputFormat())
 
         // update field between prefix/suffix boxes
@@ -203,7 +214,6 @@
         // update warning
         updateWarningBox()
     }
-
 
     </script>
 </head>
@@ -305,12 +315,16 @@ Meredith	Roy	Berry</textarea>
         <div class="col-xl-9 p-2 text-start">
             <!--start of output card-->
             <div class="card">
-                <div class="card-header bg-primary text-light" id="cardHeader"><span id="outputFormat" class="h5"></span><span id="outputCounter" class="small"></span></div>
+                <div class="card-header bg-primary text-light" id="cardHeader"><h5 class="mb-0"><span id="outputFormat" class="h5"></span><span id="outputCounter" class="badge text-bg-warning float-end"></span><div class="form-check form-switch float-end" id="divCommaToSpaces">
+                    <input class="form-check-input" type="checkbox" id="toggleCommaToSpaces" onchange="updateOutputBox()">
+                    <label class="form-check-label pe-3 small" for="toggleCommaToSpaces">spaces</label>
+                  </div>
+                </h5></div>
                 <div class="card-body p-2" id="test">
                 <div class="alert alert-danger" role="alert" id="warningBox" style="display:none"></div>
-                <pre id="outputPre" style="display:none" ondblclick="window.getSelection().selectAllChildren(document.getElementById('outputPre'))"></pre>
+                <pre class="rounded font-monospace bg-light border border-secondary p-2" id="outputPre" style="display:none" ondblclick="window.getSelection().selectAllChildren(document.getElementById('outputPre'))"></pre>
                 <ul id="outputUL" class="list-group list-group-flush" style="display:none" ondblclick="window.getSelection().selectAllChildren(document.getElementById('outputUL'))"></ul>
-                <textarea class="form-control" aria-label="Output" rows="9" id="outputTextarea" style="display:none" ondblclick="select()"></textarea>
+                <textarea class="form-control font-monospace bg-dark text-light" aria-label="Output" rows="9" id="outputTextarea" style="display:none" ondblclick="select()"></textarea>
                 </div>
             </div>
             <!--end of output card-->
