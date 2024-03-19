@@ -131,6 +131,7 @@
     function updateOutputBox() {
         // create variables for various elements on page
         let toggleUnique = document.getElementById('toggleUnique')
+        let toggleSort = document.getElementById('toggleSort')
         let toggleOutputList = document.getElementById('toggleOutputList')
         let toggleOutputRaw = document.getElementById('toggleOutputRaw')
         let toggleOutputCSV = document.getElementById('toggleOutputCSV')
@@ -146,7 +147,7 @@
         let firstValueField = document.getElementById('firstValueField')
         let outputFormat = document.getElementById('outputFormat')
 
-        let outputArray = String()
+        let outputArray = Array()
         
         // get regex array/unique regex array based on toggleUnique value
         if (toggleUnique.checked) {
@@ -155,46 +156,57 @@
             outputArray = executeRegexMatchAndRepack(inputTextarea)
         }
 
+        if (toggleSort.checked) {
+            outputArray.sort()
+        }
+        
+        firstValueField.innerHTML = stripPacking(outputArray[0])
+
         // update counter in output
         outputCounter.innerHTML = outputArray.length + (document.getElementById('toggleUnique').checked ? ' <em>unique</em>' : '') + (outputArray.length == 1 ? ' item' : ' items')
         
         // show pre, hide textarea/list and output raw to pre
-        if (toggleOutputRaw.checked) {
-            outputPre.style.display = 'block'
+        if (toggleOutputRaw.checked || toggleOutputCSV.checked || toggleOutputPython.checked) {
+            outputPre.style.display = ''
             outputTextarea.style.display = 'none'
             outputUL.style.display = 'none'
-            outputPre.innerHTML = ''
+            //outputPre.innerHTML = ''
             outputPre.innerHTML = outputArray.join('\n')
         }
 
         // hide pre/list, show textarea and output for CSV
-        if (toggleOutputCSV.checked || toggleOutputPython.checked) {
-            outputPre.style.display = 'none'
-            outputTextarea.style.display = 'block'
-            outputUL.style.display = 'none'
-            outputTextarea.innerHTML = outputArray.join()
-        }
+        // if (toggleOutputCSV.checked || toggleOutputPython.checked) {
+        //     outputPre.style.display = 'none'
+        //     outputTextarea.style.display = ''
+        //     outputUL.style.display = 'none'
+        //     outputTextarea.innerHTML = outputArray.join()
+        // }
 
         if (toggleOutputCSV.checked) {
-            divCommaToSpaces.style.display = 'block'
+            divCommaToSpaces.style.display = ''
         } else {
             divCommaToSpaces.style.display = 'none'
         }
+
         if (toggleCommaToSpaces.checked && toggleOutputCSV.checked) {
-            outputTextarea.innerHTML = outputArray.join().replaceAll(',', ' ')
+            outputPre.innerHTML = outputArray.join().replaceAll(',', ' ')
+            // outputTextarea.innerHTML = outputArray.join().replaceAll(',', ' ')
         }   
 
         // update textarea for python
         if (toggleOutputPython.checked) {
-            outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
+            outputPre.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
+        }
 
+        if (toggleOutputCSV.checked) {
+            outputPre.innerHTML = outputArray.join()
         }
 
         // hide pre/textarea, show list and append output to list
         if (toggleOutputList.checked) {
             outputPre.style.display = 'none'
             outputTextarea.style.display = 'none'
-            outputUL.style.display = 'block'
+            outputUL.style.display = ''
             outputUL.innerHTML = ''
             outputArray.forEach((item) => {
                 let li = document.createElement('li'); // create list item
@@ -209,12 +221,11 @@
         setCardHeaderColour(getOutputFormat())
 
         // update field between prefix/suffix boxes
-        firstValueField.innerHTML = stripPacking(outputArray[0])
+        //firstValueField.innerHTML = stripPacking(outputArray[0])
 
         // update warning
         updateWarningBox()
     }
-
     </script>
 </head>
 <body onload="updateOutputBox()">
@@ -247,7 +258,7 @@ Meredith	Roy	Berry</textarea>
             <div class="card-body p-2">
                 <h7 class="card-title">Delimeters</h5>
                 <div class="row">
-                <div class="col-5">
+                <div class="col-4">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="toggleLinefeed" onchange="updateOutputBox()" checked>
                         <label class="form-check-label" for="toggleLinefeed">newline</label>
@@ -257,7 +268,7 @@ Meredith	Roy	Berry</textarea>
                         <label class="form-check-label" for="toggleTab">tab</label>
                     </div>
                 </div>
-                <div class="col-5">
+                <div class="col-4">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="toggleSpace" onchange="updateOutputBox()" checked>
                         <label class="form-check-label" for="toggleSpace">space</label>
@@ -267,17 +278,28 @@ Meredith	Roy	Berry</textarea>
                         <label class="form-check-label" for="toggleComma">comma</label>
                     </div>
                 </div>
+                <div class="col-1 float-end mt-2"></div>
                 <div class="col-2">
-                    <div class="input-group input-group-sm mt-2">
+                    <div class="input-group input-group-sm mt-1">
                         <input type="text" class="form-control text-center p-1" aria-label="custom" placeholder="" maxlength="1" oninput="updateOutputBox()" id="customDelimeter">
                     </div>
                 </div>
+                <div class="col-1"></div>
                 </div><hr class="mt-1 mb-1">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="toggleUnique" onchange="updateOutputBox()">
-                    <label class="form-check-label" for="toggleUnique">remove duplicates</label>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="toggleSort" onchange="updateOutputBox()">
+                            <label class="form-check-label" for="toggleSort">sort</label>
+                        </div>
+                    </div>
+                    <div class="col-8">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="toggleUnique" onchange="updateOutputBox()">
+                            <label class="form-check-label" for="toggleUnique">remove duplicates</label>
+                        </div>
+                    </div>
                 </div>
-
                 <div class="row">
                     
                 
@@ -322,7 +344,7 @@ Meredith	Roy	Berry</textarea>
                 </h5></div>
                 <div class="card-body p-2" id="test">
                 <div class="alert alert-danger" role="alert" id="warningBox" style="display:none"></div>
-                <pre class="rounded font-monospace bg-light border border-secondary p-2 user-select-all" id="outputPre" style="display:none"></pre>
+                <pre class="rounded font-monospace bg-light border border-secondary p-2 user-select-all" id="outputPre" style="display:none; min-height: 400px"></pre>
                 <ul id="outputUL" class="list-group list-group-flush user-select-all" style="display:none"></ul>
                 <textarea class="form-control font-monospace bg-dark text-light" aria-label="Output" rows="9" id="outputTextarea" style="display:none" onclick="select()" readonly></textarea>
                 </div>
