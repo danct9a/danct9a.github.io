@@ -166,21 +166,20 @@
         outputCounter.innerHTML = outputArray.length + (document.getElementById('toggleUnique').checked ? ' <em>unique</em>' : '') + (outputArray.length == 1 ? ' item' : ' items')
         
         // show pre, hide textarea/list and output raw to pre
-        if (toggleOutputRaw.checked || toggleOutputCSV.checked || toggleOutputPython.checked) {
+        if (toggleOutputRaw.checked) {
             outputPre.style.display = ''
             outputTextarea.style.display = 'none'
             outputUL.style.display = 'none'
-            //outputPre.innerHTML = ''
             outputPre.innerHTML = outputArray.join('\n')
         }
 
         // hide pre/list, show textarea and output for CSV
-        // if (toggleOutputCSV.checked || toggleOutputPython.checked) {
-        //     outputPre.style.display = 'none'
-        //     outputTextarea.style.display = ''
-        //     outputUL.style.display = 'none'
-        //     outputTextarea.innerHTML = outputArray.join()
-        // }
+        if (toggleOutputCSV.checked || toggleOutputPython.checked) {
+            outputPre.style.display = 'none'
+            outputTextarea.style.display = ''
+            outputUL.style.display = 'none'
+            outputTextarea.innerHTML = outputArray.join()
+        }
 
         if (toggleOutputCSV.checked) {
             divCommaToSpaces.style.display = ''
@@ -189,17 +188,12 @@
         }
 
         if (toggleCommaToSpaces.checked && toggleOutputCSV.checked) {
-            outputPre.innerHTML = outputArray.join().replaceAll(',', ' ')
-            // outputTextarea.innerHTML = outputArray.join().replaceAll(',', ' ')
+            outputTextarea.innerHTML = outputArray.join().replaceAll(',', ' ')
         }   
 
         // update textarea for python
         if (toggleOutputPython.checked) {
-            outputPre.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
-        }
-
-        if (toggleOutputCSV.checked) {
-            outputPre.innerHTML = outputArray.join()
+            outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
         }
 
         // hide pre/textarea, show list and append output to list
@@ -221,7 +215,7 @@
         setCardHeaderColour(getOutputFormat())
 
         // update field between prefix/suffix boxes
-        //firstValueField.innerHTML = stripPacking(outputArray[0])
+        firstValueField.innerHTML = stripPacking(outputArray[0])
 
         // update warning
         updateWarningBox()
@@ -344,7 +338,7 @@ Meredith	Roy	Berry</textarea>
                 </h5></div>
                 <div class="card-body p-2" id="test">
                 <div class="alert alert-danger" role="alert" id="warningBox" style="display:none"></div>
-                <pre class="rounded font-monospace bg-light border border-secondary p-2 user-select-all" id="outputPre" style="display:none; min-height: 400px"></pre>
+                <pre class="rounded font-monospace bg-light border border-secondary p-2 user-select-all" id="outputPre" style="display:none; min-height: 200px"></pre>
                 <ul id="outputUL" class="list-group list-group-flush user-select-all" style="display:none"></ul>
                 <textarea class="form-control font-monospace bg-dark text-light" aria-label="Output" rows="9" id="outputTextarea" style="display:none" onclick="select()" readonly></textarea>
                 </div>
