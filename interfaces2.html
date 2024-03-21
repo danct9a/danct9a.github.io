@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script type="text/javascript">
+      function getInterfaces() {
+        let interfaceRegex = RegExp(/^(?:et|xe)-\d\/\d\/\d{1,2}(?:\:[0-3])?$/)
+        let inputTextarea = document.getElementById('inputTextarea')
+        let interfaces = Array()
+        inputTextarea.value.match(/[^\s\n,]+/g).forEach((inputMatch) => {
+          if (inputMatch.match(interfaceRegex)) {
+            interfaces.push(inputMatch.match(interfaceRegex).toString())
+          }
+        })
+        return interfaces
+      }
+
+      function getCommands(interfaces) {
+        let inputTextarea = document.getElementById('inputTextarea')
+        let outputSelector = document.getElementById('outputSelector')
+        let prefixText = document.getElementById('prefixText')
+        let suffixText = document.getElementById('suffixText')
+        let outputArray = Array()
+        let outputOptions = {
+          0: {
+            'light': {'prefix': 'show interfaces diagnostics optics', 'suffix': '| match "Laser receiver power +:"'},
+            'lastflap': {'prefix': 'show interfaces', 'suffix': '| match "^ +(Link-|Ethernet-|Last)"'}
+          },
+          1: {
+            'custom': {'prefix': prefixText.value, 'suffix': suffixText.value}
+          }
+        }
+        interfaces.forEach((interface) => {
+          for (command in outputOptions[outputSelector.value]) {
+            outputArray.push(`${outputOptions[outputSelector.value][command]['prefix']} ${interface} ${outputOptions[outputSelector.value][command]['suffix']}`)
+          }
+        })
+        return outputArray
+      }
+
+      function updateOutput(commands) {
+        let outputTextarea = document.getElementById('outputTextarea')
+        let outputSelector = document.getElementById('outputSelector')
+        let customDiv = document.getElementById('customDiv')
+        let firstValueField = document.getElementById('firstValueField')
+        outputTextarea.value = commands.join('\n')
+        firstValueField.innerText = getInterfaces()[0]
+        if (outputSelector.value == 1) {
+          customDiv.style.display = ''
+        } else {
+          customDiv.style.display = 'none'
+        }
+      }
+    </script>
+</head>
+<body onload="updateOutput(getCommands(getInterfaces()))">
+  <div class="container">
+    <div class="row">
+      <div class="col text-center">
+        <h1>Interfaces</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-4 text-center" id="parentDiv">
+        <div class="row">
+          <div class="col font-monospace p-1">
+            <textarea class="form-control" aria-label="Input" rows="20" id="inputTextarea" oninput="updateOutput(getCommands(getInterfaces()))" ondblclick="select()">et-0/0/12 et-0/0/13 et-0/0/22,et-0/0/23
+xe-0/0/69
+xe-0/0/64:0
+xe-0/0/64:4</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="col-8 font-monospace p-1" id="thirdDiv"><textarea class="form-control bg-secondary text-light" aria-label="Input" rows="20" id="outputTextarea" onclick="select()" readonly></textarea></div>
+    </div>
+    <div class="row">
+      <div class="col-4 text-center float-center">
+      <select class="form-select mt-1" aria-label="outputSelector" id="outputSelector" onchange="updateOutput(getCommands(getInterfaces()))">
+        <option value="0" selected>Light Levels</option>
+        <option value="1">Custom</option>
+      </select>
+      </div>
+      <div class="col" id="customDiv">
+        <div class="row">
+          <div class="col-5"><div class="input-group mt-1 mb-1"><input type="text" class="form-control p-1 text-end" placeholder="prefix" aria-label="prefix" id="prefixText" oninput="updateOutput(getCommands(getInterfaces()))"></div></div>
+          <div class="col-2 p-1 text-truncate text-center font-monospace mt-1" id="firstValueField"></div>
+          <div class="col-5"><div class="input-group mt-1 mb-1"><input type="text" class="form-control p-1 text-start" placeholder="suffix" aria-label="suffix" id="suffixText" oninput="updateOutput(getCommands(getInterfaces()))"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
