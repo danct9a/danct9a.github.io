@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script type="text/javascript">
+    
+        
+    function constructRegex() {
+        let constructors = Array()
+        // get values of checkboxes
+        let toggleLinefeed = document.getElementById('toggleLinefeed')
+        let toggleTab = document.getElementById('toggleTab')
+        let toggleSpace = document.getElementById('toggleSpace')
+        let toggleComma = document.getElementById('toggleComma')
+        let customDelimeter = document.getElementById('customDelimeter').value
+
+        // add constructor to array if checkbox toggled
+        if (toggleLinefeed.checked) {
+            constructors.push('\n')
+        }
+        if (toggleTab.checked) {
+            constructors.push('\t')
+        }
+        if (toggleSpace.checked) {
+            constructors.push(' ')
+        }
+        if (toggleComma.checked) {
+            constructors.push(',')
+        }
+        if (customDelimeter.length > 0) {
+            constructors.push(customDelimeter)
+        }
+
+        // create an exclusion string from the constructors array
+        let regexString = String()
+        constructors.forEach((constructor) => {
+            regexString += constructor
+        })
+
+        // return a regex object containing exclusions
+        return RegExp(`[^${regexString}]+`, 'g')
+    }
+
+    function executeRegexMatchAndRepack(searchString) {
+        // execute match operation
+        let regexOutput = searchString.match(constructRegex())
+
+        // get values of prefix/suffix text boxes
+        let prefix = document.getElementById('prefix').value
+        let suffix = document.getElementById('suffix').value
+
+        // create tempArray and add prefixes/suffixes
+        let tempArray = Array()
+        regexOutput.forEach((element) => {
+            tempArray.push(`${prefix}${element}${suffix}`)
+        })
+
+        // return tempArray
+        return tempArray
+    }
+
+    function returnUniqueArray(inputArray) {
+        // create a set of the inputArray, and return array containing unpacked set
+        return [...new Set(inputArray)]
+    }
+
+
+    function getOutputFormat() {
+        for (let i of document.getElementsByName('btnradio')) {
+        if (i.checked) {
+            return i.id.replace('toggle', '').replace('Output', '')
+            }
+        }
+    }
+
+    function setCardHeaderColour(outputFormat) {
+        let cardHeader = document.getElementById('cardHeader')
+        colourDictionary = {
+            'List': 'bg-primary',
+            'Raw': 'bg-secondary',
+            'CSV': 'bg-success',
+            'Python': 'bg-danger'
+        }
+        for (const [format, colour] of Object.entries(colourDictionary)) {
+            if (outputFormat == format) {
+                cardHeader.className = `card-header text-light ${colour}`
+            }
+        }
+    }
+
+    function updateWarningBox() {
+        // get checkbox and warningBox elements
+        let toggleTab = document.getElementById('toggleTab')
+        let toggleComma = document.getElementById('toggleComma')
+        let toggleOutputList = document.getElementById('toggleOutputList')
+        let toggleOutputCSV = document.getElementById('toggleOutputCSV')
+        let warningBox = document.getElementById('warningBox')
+
+        let warningMessages = Array()
+        let outputWarningMessages = String()
+
+        if (toggleComma.checked == false && toggleOutputCSV.checked) {
+            warningMessages.push('<strong>comma separated values</strong> are still treated as separate entries in the <strong>CSV output</strong> if not using the comma delimeter! You can work around this by wrapping the text in quotations, using the modifiers section above.')
+        }
+        if (toggleTab.checked == false && toggleOutputList.checked) {
+            warningMessages.push('<strong>tabs</strong> will output as spaces in the <strong>list output</strong>!')
+        }
+        if (warningMessages.length > 0) {
+            warningBox.style.display = 'block'
+            warningMessages.forEach((message) => {
+                outputWarningMessages += `<strong>WARNING:</strong> ${message}<br>`
+            })
+        } else {
+            warningBox.style.display = 'none'
+        }
+        warningBox.innerHTML = outputWarningMessages
+    }
+
+    function stripPacking(firstValue) {
+
+        let suffixLength = document.getElementById('suffix').value.length
+        let prefixLength = document.getElementById('prefix').value.length
+        let firstValueLength = firstValue.length
+
+        return firstValue.slice(prefixLength, (firstValueLength - suffixLength))
+    }
+
+    function updateOutputBox() {
+        // create variables for various elements on page
+        let toggleUnique = document.getElementById('toggleUnique')
+        let toggleSort = document.getElementById('toggleSort')
+        let toggleOutputList = document.getElementById('toggleOutputList')
+        let toggleOutputRaw = document.getElementById('toggleOutputRaw')
+        let toggleOutputCSV = document.getElementById('toggleOutputCSV')
+        let toggleOutputPython = document.getElementById('toggleOutputPython')
+        let toggleCommaToSpaces = document.getElementById('toggleCommaToSpaces')
+        let divCommaToSpaces = document.getElementById('divCommaToSpaces')
+
+        let inputTextarea = document.getElementById('inputTextarea').value
+        let outputTextarea = document.getElementById('outputTextarea')
+        let outputPre = document.getElementById('outputPre')
+        let outputUL = document.getElementById('outputUL')
+        let outputCounter = document.getElementById('outputCounter')
+        let firstValueField = document.getElementById('firstValueField')
+        let outputFormat = document.getElementById('outputFormat')
+
+        let outputArray = Array()
+        
+        // get regex array/unique regex array based on toggleUnique value
+        if (toggleUnique.checked) {
+            outputArray = returnUniqueArray(executeRegexMatchAndRepack(inputTextarea))
+        } else {
+            outputArray = executeRegexMatchAndRepack(inputTextarea)
+        }
+
+        if (toggleSort.checked) {
+            outputArray.sort()
+        }
+        
+        firstValueField.innerHTML = stripPacking(outputArray[0])
+
+        // update counter in output
+        outputCounter.innerHTML = outputArray.length + (document.getElementById('toggleUnique').checked ? ' <em>unique</em>' : '') + (outputArray.length == 1 ? ' item' : ' items')
+        
+        // show pre, hide textarea/list and output raw to pre
+        if (toggleOutputRaw.checked) {
+            outputPre.style.display = ''
+            outputTextarea.style.display = 'none'
+            outputUL.style.display = 'none'
+            outputPre.innerHTML = outputArray.join('\n')
+        }
+
+        // hide pre/list, show textarea and output for CSV
+        if (toggleOutputCSV.checked || toggleOutputPython.checked) {
+            outputPre.style.display = 'none'
+            outputTextarea.style.display = ''
+            outputUL.style.display = 'none'
+            outputTextarea.innerHTML = outputArray.join()
+        }
+
+        if (toggleOutputCSV.checked) {
+            divCommaToSpaces.style.display = ''
+        } else {
+            divCommaToSpaces.style.display = 'none'
+        }
+
+        if (toggleCommaToSpaces.checked && toggleOutputCSV.checked) {
+            outputTextarea.innerHTML = outputArray.join().replaceAll(',', ' ')
+        }   
+
+        // update textarea for python
+        if (toggleOutputPython.checked) {
+            outputTextarea.innerHTML = `mylist = ${JSON.stringify(outputArray)}\n\nfor index, item in enumerate(mylist):\n    print(f\'{index} : {item}\')`
+        }
+
+        // hide pre/textarea, show list and append output to list
+        if (toggleOutputList.checked) {
+            outputPre.style.display = 'none'
+            outputTextarea.style.display = 'none'
+            outputUL.style.display = ''
+            outputUL.innerHTML = ''
+            outputArray.forEach((item) => {
+                let li = document.createElement('li'); // create list item
+                li.innerText = item
+                li.className = 'list-group-item'
+                outputUL.appendChild(li)
+            })
+        }
+
+        // update card title and background colour basd on output format
+        outputFormat.innerText = getOutputFormat() + ' Output'
+        setCardHeaderColour(getOutputFormat())
+
+        // update field between prefix/suffix boxes
+        firstValueField.innerHTML = stripPacking(outputArray[0])
+
+        // update warning
+        updateWarningBox()
+    }
+    </script>
+
+<script type="text/javascript">
+    let dropdownOptions = {
+        'andrew': 1,
+        'barry': 2,
+        'charlie': 69
+        }
+
+    let templateOptions = {
+        69: {
+            'switchName': {
+                'type': 'input',
+            },
+            'colo': {
+                'type': 'input',
+            },
+        }
+    }
+
+    function populateDropdown() {
+
+    let dropdown = document.getElementById('dropdown')
+
+    for (let[key, value] of Object.entries(dropdownOptions)) {
+        let option = document.createElement('option'); // create opton item
+        option.value = value
+        option.innerText = key
+        dropdown.appendChild(option)
+        }
+    }
+
+    function updatePre() {
+        let output = document.getElementById('output')
+        output.innerText = templateOptions[dropdown.value]
+    }
+</script>
+</head>
+<body onload="populateDropdown()">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script> -->
+
+    <select id="dropdown" onchange="updatePre()">
+    </select>
+
+    <pre id="output"></pre>
+</body>
+</html>
